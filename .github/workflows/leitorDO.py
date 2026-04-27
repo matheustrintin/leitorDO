@@ -1,13 +1,16 @@
 import os
 import requests
+from datetime import datetime
 from playwright.sync_api import sync_playwright
 
-# Configurações com suas credenciais
-DATA_FIXA = "27/04/2026"
-URL = f"https://www.mpsp.mp.br/w/{DATA_FIXA.replace('/', '/')}"
-PALAVRA_ALVO = "são carlos"
+# Configurações
+# Usamos a data de hoje automaticamente
+DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
+URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
-# O script lerá os dados do ambiente do GitHub
+# Lista de palavras-chave para monitorar
+PALAVRAS_CHAVE = ["são carlos", "matheus rocateli trintin", "neiva paula"]
+
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
@@ -21,7 +24,6 @@ def enviar_telegram(mensagem):
 
 def verificar_mpsp():
     with sync_playwright() as p:
-        # Lança o navegador em modo invisível
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -32,35 +34,34 @@ def verificar_mpsp():
             print(f"Acessando MPSP em: {URL}")
             page.goto(URL, wait_until="domcontentloaded", timeout=60000)
             
-            # Captura os blocos de texto (divs e itens de lista)
             blocos = page.query_selector_all("div, li") 
             mensagens_encontradas = []
             
             for bloco in blocos:
-                texto_bloco = bloco.inner_text()
-                # Verifica se o termo está presente no bloco inteiro
-                if PALAVRA_ALVO.lower() in texto_bloco.lower():
-                    # Quebra o bloco em linhas e filtra apenas as que contêm a palavra
-                    linhas = [l.strip() for l in texto_bloco.split('\n') if PALAVRA_ALVO.lower() in l.lower()]
+                texto_bloco = bloco.inner_text().lower()
+                
+                # Verifica se qualquer uma das palavras-chave está presente no bloco
+                if any(palavra in texto_bloco for palavra in PALAVRAS_CHAVE):
+                    # Quebra em linhas e filtra apenas as que contêm pelo menos uma das palavras
+                    linhas = [l.strip() for l in texto_bloco.split('\n') 
+                              if any(palavra in l for palavra in PALAVRAS_CHAVE)]
+                    
                     for linha in linhas:
                         if linha not in mensagens_encontradas:
                             mensagens_encontradas.append(linha)
             
             if mensagens_encontradas:
-                # Montagem da mensagem final incluindo todas as ocorrências coletadas
-                texto_final = f"🔔 Alerta MPSP - {DATA_FIXA}:\n\n"
+                texto_final = f"🔔 Publicação DOMPSP - {DATA_HOJE}:\n\n"
                 for msg in mensagens_encontradas:
                     texto_final += f"• {msg}\n"
                 
                 enviar_telegram(texto_final)
-                print("Alerta completo enviado com sucesso!")
+                print("Alerta enviado com sucesso!")
                 
-                # Salva em arquivo de histórico
                 with open("historicoDO.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n--- Data: {DATA_FIXA} ---\n{texto_final}\n")
+                    f.write(f"\n--- Data: {DATA_HOJE} ---\n{texto_final}\n")
             else:
-                print(f"Nenhuma ocorrência encontrada para {DATA_FIXA}.")
-                
+                print(f"Nenhuma publicação encontrada para {DATA_HOJE} com as palavras-chave {PALAVRAS_CHAVE}.")                
         except Exception as e:
             print(f"Erro ao processar: {e}")
         finally:
