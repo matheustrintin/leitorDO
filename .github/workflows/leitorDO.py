@@ -9,8 +9,7 @@ DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
 # Lista de palavras-chave para monitorar
-PALAVRAS_CHAVE = ["São Carlos", "Matheus Rocateli Trintin", "Lara Goncalves Monteiro", "Marcos Vinicios Marcolino", 
-                  "Jose Raphael da Silva", "Maria do Carmo Ponchon da Silva Purcini"]
+PALAVRAS_CHAVE = ["são carlos", "matheus rocateli trintin", "lara goncalves monteiro", "marcos vinicios marcolino", "jose raphael da silva", "maria do carmo ponchon da silva purcini"]
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
