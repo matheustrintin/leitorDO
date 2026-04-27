@@ -9,7 +9,7 @@ DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
 # Lista de palavras-chave para monitorar
-PALAVRAS_CHAVE = ["são carlos", "tiago de azevedo", "Araraquara",
+PALAVRAS_CHAVE = ["são carlos", "tiago de azevedo", "araraquara",
     "matheus rocateli trintin", "lara goncalves monteiro", "neiva paula paccola carnielli pereira",
     "marcos vinicios marcolino", "natalia batista borges", "aisla massariolli palmieri parisi", "mario jose correa de paula",
     "jose raphael da silva", "bruno sant anna barbosa ferreira", "antonio marcos ocanha", "marco aurelio bernarde de almeida",
