@@ -4,11 +4,10 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright
 
 # Configurações
-# Usamos a data de hoje automaticamente
 DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
-# Lista de palavras-chave para monitorar
+# Lista de palavras-chave
 PALAVRAS_CHAVE = ["são carlos", "tiago de azevedo", "araraquara",
     "matheus rocateli trintin", "lara goncalves monteiro", "neiva paula paccola carnielli pereira",
     "marcos vinicios marcolino", "natalia batista borges", "aisla massariolli palmieri parisi", "mario jose correa de paula",
@@ -20,7 +19,11 @@ CHAT_ID = os.environ["CHAT_ID"]
 
 def enviar_telegram(mensagem):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": mensagem}
+    payload = {
+        "chat_id": CHAT_ID, 
+        "text": mensagem,
+        "parse_mode": "HTML" # Usando HTML para evitar problemas com caracteres especiais
+    }
     try:
         requests.post(url, data=payload)
     except Exception as e:
@@ -42,30 +45,42 @@ def verificar_mpsp():
             mensagens_encontradas = []
             
             for bloco in blocos:
-                texto_bloco = bloco.inner_text().lower()
+                texto_bloco = bloco.inner_text()
+                texto_min = texto_bloco.lower()
                 
-                # Verifica se qualquer uma das palavras-chave está presente no bloco
-                if any(palavra in texto_bloco for palavra in PALAVRAS_CHAVE):
-                    # Quebra em linhas e filtra apenas as que contêm pelo menos uma das palavras
+                if any(palavra in texto_min for palavra in PALAVRAS_CHAVE):
                     linhas = [l.strip() for l in texto_bloco.split('\n') 
-                              if any(palavra in l for palavra in PALAVRAS_CHAVE)]
+                              if any(palavra in l.lower() for palavra in PALAVRAS_CHAVE)]
                     
                     for linha in linhas:
                         if linha not in mensagens_encontradas:
                             mensagens_encontradas.append(linha)
             
             if mensagens_encontradas:
-                texto_final = f"🔔 Publicação DOMPSP de {DATA_HOJE}:\n\n"
-                for msg in mensagens_encontradas:
-                    texto_final += f">>>  {msg}\n\n"
+                texto_final = f"🔔 <b>Publicação DOMPSP de {DATA_HOJE}:</b>\n\n"
+                
+                for linha in mensagens_encontradas:
+                    linha_formatada = linha
+                    # Aplica destaque HTML (negrito) nas palavras-chave encontradas
+                    for palavra in PALAVRAS_CHAVE:
+                        if palavra in linha.lower():
+                            # Substitui mantendo o original, mas envolvendo em <b>
+                            # Usamos um replace simples aqui
+                            termo_destaque = f"<b>{palavra.upper()}</b>"
+                            # Importante: substituição case-insensitive básica
+                            import re
+                            linha_formatada = re.sub(re.escape(palavra), termo_destaque, linha_formatada, flags=re.IGNORECASE)
+                    
+                    texto_final += f"• {linha_formatada}\n\n"
                 
                 enviar_telegram(texto_final)
-                print("Alerta enviado com sucesso!")
+                print("Alerta completo enviado com sucesso!")
                 
                 with open("historicoDO.txt", "a", encoding="utf-8") as f:
                     f.write(f"\n--- Data: {DATA_HOJE} ---\n{texto_final}\n")
             else:
-                print(f"Nenhuma publicação encontrada para {DATA_HOJE} com as palavras-chave {PALAVRAS_CHAVE}.")                
+                print(f"Nenhuma ocorrência encontrada para {DATA_HOJE}.")
+                
         except Exception as e:
             print(f"Erro ao processar: {e}")
         finally:
