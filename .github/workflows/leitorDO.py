@@ -9,7 +9,7 @@ DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
 # Lista de palavras-chave para monitorar
-PALAVRAS_CHAVE = ["são carlos", "matheus rocateli trintin", "lara goncalves monteiro", "marcos vinicios marcolino", "jose raphael da silva", "maria do carmo ponchon da silva purcini"]
+PALAVRAS_CHAVE = ["são carlos", "matheus rocateli trintin", "lara goncalves monteiro", "marcos vinicios marcolino", "jose raphael da silva", "maria do carmo ponchon da silva purcini", "Otavio Manoel Alves de Oliveira", "Rafael Pessoa do Nascimento"]
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
@@ -51,9 +51,9 @@ def verificar_mpsp():
                             mensagens_encontradas.append(linha)
             
             if mensagens_encontradas:
-                texto_final = f"🔔 Publicação DOMPSP - {DATA_HOJE}:\n\n"
+                texto_final = f"🔔 Publicação DOMPSP de {DATA_HOJE}:\n\n"
                 for msg in mensagens_encontradas:
-                    texto_final += f"• {msg}\n"
+                    texto_final += f">>>  {msg}\n\n"
                 
                 enviar_telegram(texto_final)
                 print("Alerta enviado com sucesso!")
