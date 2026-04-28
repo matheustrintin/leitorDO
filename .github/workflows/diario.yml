@@ -10,3 +10,4 @@ jobs:
     steps:
       - name: Rodar teste simples
         run: echo "O sistema de agendamento esta funcionando!"
+# Apenas forçando o gatilho do cron
