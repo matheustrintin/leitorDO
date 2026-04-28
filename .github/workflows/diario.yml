@@ -1,7 +1,7 @@
 name: Leitor DO
 on:
   schedule:
-    - cron: '14 13 * * *' # 50 minutos, 12 horas (UTC) = 09:50 (Brasília)
+    - cron: '18 13 * * *' # 50 minutos, 12 horas (UTC) = 09:50 (Brasília)
   workflow_dispatch: # Permite rodar manualmente a qualquer momento
 
 jobs:
@@ -21,4 +21,4 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python .github/workflows/leitorDO.py
+        run: python leitorDO.py
