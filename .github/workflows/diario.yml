@@ -1,7 +1,7 @@
 name: Leitor DO
 on:
   schedule:
-    - cron: '0 10 * * *' # Isso roda às 07:00 da manhã (Horário de Brasília)
+    - cron: '50 12 * * *' # 50 minutos, 12 horas (UTC) = 09:50 (Brasília)
   workflow_dispatch: # Permite rodar manualmente a qualquer momento
 
 jobs:
