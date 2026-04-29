@@ -1,6 +1,6 @@
 import os
 import requests
-import re # Importação necessária para o re.sub
+import re
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 
@@ -8,7 +8,6 @@ from playwright.sync_api import sync_playwright
 DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 URL = f"https://www.mpsp.mp.br/w/{DATA_HOJE.replace('/', '/')}"
 
-# Lista de palavras-chave
 PALAVRAS_CHAVE = ["são carlos", "tiago de azevedo", "araraquara",
     "matheus rocateli trintin", "lara goncalves monteiro", "neiva paula paccola carnielli pereira",
     "marcos vinicios marcolino", "natalia batista borges", "aisla massariolli palmieri parisi", "mario jose correa de paula",
@@ -20,11 +19,7 @@ CHAT_ID = os.environ["CHAT_ID"]
 
 def enviar_telegram(mensagem):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID, 
-        "text": mensagem,
-        "parse_mode": "HTML" 
-    }
+    payload = {"chat_id": CHAT_ID, "text": mensagem, "parse_mode": "HTML"}
     try:
         requests.post(url, data=payload)
     except Exception as e:
@@ -41,6 +36,12 @@ def verificar_mpsp():
         try:
             print(f"Acessando MPSP em: {URL}")
             page.goto(URL, wait_until="domcontentloaded", timeout=60000)
+            
+            # DEPURAÇÃO: Imprime o texto capturado para conferência no log
+            texto_corpo = page.inner_text("body")
+            print("--- INÍCIO DO CONTEÚDO CAPTURADO ---")
+            print(texto_corpo[:2000]) # Exibe os primeiros 2000 caracteres
+            print("--- FIM DO CONTEÚDO CAPTURADO ---")
             
             blocos = page.query_selector_all("div, li") 
             mensagens_encontradas = []
@@ -59,23 +60,17 @@ def verificar_mpsp():
             
             if mensagens_encontradas:
                 texto_final = f"🔔 <b>Publicação DOMPSP de {DATA_HOJE}:</b>\n\n"
-                
                 for linha in mensagens_encontradas:
                     linha_formatada = linha
                     for palavra in PALAVRAS_CHAVE:
                         if palavra in linha.lower():
                             termo_destaque = f"<b>{palavra.upper()}</b>"
                             linha_formatada = re.sub(re.escape(palavra), termo_destaque, linha_formatada, flags=re.IGNORECASE)
-                    
                     texto_final += f"• {linha_formatada}\n\n"
                 
                 enviar_telegram(texto_final)
-                print("Alerta completo enviado com sucesso!")
-                
-                with open("historicoDO.txt", "a", encoding="utf-8") as f:
-                    f.write(f"\n--- Data: {DATA_HOJE} ---\n{texto_final}\n")
+                print("Alerta enviado com sucesso!")
             else:
-                # Nova funcionalidade: notifica que nada foi encontrado
                 msg_vazia = f"📭 Nada encontrado no dia {DATA_HOJE}."
                 enviar_telegram(msg_vazia)
                 print(f"Nenhuma ocorrência encontrada para {DATA_HOJE}.")
