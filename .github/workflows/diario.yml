@@ -1,13 +1,25 @@
-name: Teste Automatico
+name: Monitor MPSP
+
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '28 13 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Rodar teste simples
-        run: echo "O sistema de agendamento esta funcionando!"
-# Apenas forçando o gatilho do cron
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install requests playwright
+          playwright install chromium
+      - name: Run script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python leitorDO.py
