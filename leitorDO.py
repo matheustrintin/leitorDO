@@ -1,5 +1,6 @@
 import os
 import requests
+import re # Importação necessária para o re.sub
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 
@@ -22,7 +23,7 @@ def enviar_telegram(mensagem):
     payload = {
         "chat_id": CHAT_ID, 
         "text": mensagem,
-        "parse_mode": "HTML" # Usando HTML para evitar problemas com caracteres especiais
+        "parse_mode": "HTML" 
     }
     try:
         requests.post(url, data=payload)
@@ -61,14 +62,9 @@ def verificar_mpsp():
                 
                 for linha in mensagens_encontradas:
                     linha_formatada = linha
-                    # Aplica destaque HTML (negrito) nas palavras-chave encontradas
                     for palavra in PALAVRAS_CHAVE:
                         if palavra in linha.lower():
-                            # Substitui mantendo o original, mas envolvendo em <b>
-                            # Usamos um replace simples aqui
                             termo_destaque = f"<b>{palavra.upper()}</b>"
-                            # Importante: substituição case-insensitive básica
-                            import re
                             linha_formatada = re.sub(re.escape(palavra), termo_destaque, linha_formatada, flags=re.IGNORECASE)
                     
                     texto_final += f"• {linha_formatada}\n\n"
@@ -79,6 +75,9 @@ def verificar_mpsp():
                 with open("historicoDO.txt", "a", encoding="utf-8") as f:
                     f.write(f"\n--- Data: {DATA_HOJE} ---\n{texto_final}\n")
             else:
+                # Nova funcionalidade: notifica que nada foi encontrado
+                msg_vazia = f"📭 Nada encontrado no dia {DATA_HOJE}."
+                enviar_telegram(msg_vazia)
                 print(f"Nenhuma ocorrência encontrada para {DATA_HOJE}.")
                 
         except Exception as e:
