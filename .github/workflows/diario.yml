@@ -2,7 +2,7 @@ name: Monitor MPSP
 
 on:
   schedule:
-    - cron: '15 18 * * *'
+    - cron: '50 18 * * *'
   workflow_dispatch:
 
 jobs:
